@@ -1,17 +1,24 @@
 FROM python:3.9-slim
 
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
+
+# Install build-essential and ffmpeg (which includes ffprobe)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN useradd --create-home --uid 1000 myuser
 WORKDIR /app
 
-# Instalar dependencias
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+COPY --chown=myuser:myuser ./app/requirements.txt /app/
 
-# Copiar los archivos de la aplicación
+RUN pip install --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
 
-COPY app app
+USER myuser
 
-# Exponer el puerto
-EXPOSE 5000
+# Copy the application code after installing dependencies
+COPY --chown=myuser:myuser ./app /app/
 
-# Comando para ejecutar la aplicación
-CMD ["python", "app.py"]
+CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:5000", "app:app"]
