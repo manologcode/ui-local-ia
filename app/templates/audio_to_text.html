@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audio a Texto - Ollama</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3b82f6',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+
+<body class="bg-gradient-to-br from-gray-50 to-blue-100 min-h-screen">
+    <!-- Navbar -->
+    <nav class="fixed top-0 left-0 right-0 bg-white/90 backdrop-blur-md shadow-sm z-50">
+        <div class="container mx-auto px-4">
+            <div class="flex items-center justify-between h-16">
+                <a href="/" class="flex items-center space-x-2 text-gray-800">
+                    <i class="fas fa-robot text-primary text-xl"></i>
+                    <span class="font-semibold text-lg">Interfaces de IA</span>
+                </a>
+                <a href="/"
+                    class="flex items-center space-x-2 text-gray-600 hover:text-primary transition-colors px-4 py-2 rounded-lg hover:bg-gray-50">
+                    <i class="fas fa-home text-lg"></i>
+                    <span class="font-medium">Inicio</span>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container mx-auto px-4 pt-24 pb-12">
+        <div class="max-w-4xl mx-auto">
+            <!-- Main Card -->
+            <div class="bg-white/90 backdrop-blur-md rounded-xl shadow-lg p-6 md:p-8">
+                <div class="flex items-center space-x-3 mb-8">
+                    <div class="bg-primary/10 rounded-lg p-3">
+                        <i class="fas fa-volume-up text-2xl text-primary"></i>
+                    </div>
+                    <h1 class="text-2xl md:text-3xl font-bold text-gray-800">Audio a Texto</h1>
+                </div>
+
+                <form action="{{ url_for('audio_to_text') }}" method="post" enctype="multipart/form-data" id="audioForm" class="space-y-6">
+                    <!-- Audio Upload -->
+                    <div class="space-y-2">
+                        <label class="block text-sm font-medium text-gray-700">
+                            Selecciona un Archivo de Audio
+                        </label>
+                        <div
+                            class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-lg hover:border-primary/50 transition-colors">
+                            <div class="space-y-1 text-center">
+                                <div class="flex flex-col items-center">
+                                    <i class="fas fa-file-audio text-4xl text-gray-400 mb-3"></i>
+                                    <div class="flex text-sm text-gray-600">
+                                        <label for="audioFile"
+                                            class="relative cursor-pointer rounded-md font-medium text-primary hover:text-primary/80 focus-within:outline-none">
+                                            <span>Sube un archivo de audio</span>
+                                            <input id="audioFile" name="audioFile" type="file" class="sr-only"
+                                                accept="audio/*" required>
+                                        </label>
+                                        <p class="pl-1">o arrastra y suelta</p>
+                                    </div>
+                                    <p class="text-xs text-gray-500" id="file-name">No file chosen</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="flex justify-end">
+                        <button type="submit" class="inline-flex items-center px-6 py-2.5 bg-primary hover:bg-primary/90
+                                       text-white rounded-lg shadow-md hover:shadow-lg
+                                       transform hover:-translate-y-0.5 transition-all duration-200">
+                            <i class="fas fa-magic mr-2"></i>
+                            <span>Transcribir Audio</span>
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Error Message -->
+                {% if error_message %}
+                <div class="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+                    <div class="flex items-center space-x-3">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-exclamation-circle text-red-500 text-xl"></i>
+                        </div>
+                        <div class="flex-1">
+                            <p class="text-sm text-red-700">{{ error_message }}</p>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Loading Spinner -->
+                <div id="loading" class="hidden">
+                    <div class="flex flex-col items-center justify-center py-12">
+                        <div class="relative">
+                            <div
+                                class="animate-spin rounded-full h-16 w-16 border-4 border-primary/20 border-t-primary">
+                            </div>
+                            <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                                <i class="fas fa-volume-up text-primary/40 text-xl"></i>
+                            </div>
+                        </div>
+                        <p class="mt-4 text-gray-600 font-medium">Transcribiendo audio...</p>
+                    </div>
+                </div>
+
+                <!-- Response Container -->
+                {% if transcription %}
+                <div class="mt-8 space-y-4">
+                    <div class="flex items-center space-x-2 text-gray-800">
+                        <i class="fas fa-robot text-primary"></i>
+                        <h2 class="text-xl font-semibold">Transcripción:</h2>
+                    </div>
+                    <div class="bg-gray-50/80 backdrop-blur-sm rounded-lg p-6 shadow-inner border border-gray-200">
+                        <div class="prose prose-lg prose-blue max-w-none">
+                            <p>{{ transcription }}</p>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-white/90 backdrop-blur-md py-6 mt-12">
+        <div class="container mx-auto px-4 text-center text-gray-600">
+            <p>© 2024 Interfaces de IA. Todos los derechos reservados.</p>
+        </div>
+    </footer>
+
+    <script>
+        const fileInput = document.getElementById('audioFile');
+        const fileNameSpan = document.getElementById('file-name');
+        const audioForm = document.getElementById('audioForm');
+        const loadingSpinner = document.getElementById('loading');
+
+        fileInput.addEventListener('change', function() {
+            if (this.files && this.files.length > 0) {
+                fileNameSpan.textContent = this.files[0].name;
+            } else {
+                fileNameSpan.textContent = 'No file chosen';
+            }
+        });
+
+        // Event listener for drag and drop
+        const dropZone = document.querySelector('form');
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        dropZone.addEventListener('drop', function (e) {
+            const dt = e.dataTransfer;
+            const file = dt.files[0];
+            // Assign the dropped file to the file input
+            fileInput.files = dt.files;
+            // Manually trigger the change event
+            const event = new Event('change');
+            fileInput.dispatchEvent(event);
+        });
+
+        // Event listener for form submission to show loading spinner
+        audioForm.addEventListener('submit', function(e) {
+            loadingSpinner.classList.remove('hidden');
+        });
+    </script>
+</body>
+
+</html>

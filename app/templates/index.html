@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interfaces de IA - Ollama</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3b82f6',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+
+<body class="bg-gradient-to-br from-gray-50 to-blue-100 min-h-screen">
+    <!-- Navbar -->
+    <nav class="bg-white/90 backdrop-blur-md shadow-sm">
+        <div class="container mx-auto px-4">
+            <div class="flex items-center h-16">
+                <a href="/" class="flex items-center space-x-2 text-gray-800">
+                    <i class="fas fa-robot text-primary"></i>
+                    <span class="font-semibold text-lg">Interfaces de IA</span>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Features Section -->
+    <div class="py-5">
+        <div class="container mx-auto px-4">
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Imagen a Texto -->
+                <div class="group">
+                    {% if services_status.ollama %}
+                    <a href="/image-to-text"
+                        class="block bg-white/90 backdrop-blur-md rounded-xl shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden">
+                        <div class="p-6 text-center">
+                            <i class="fas fa-image text-4xl text-primary mb-4"></i>
+                            <h3 class="text-xl font-semibold text-gray-800 mb-3">Imagen a Texto</h3>
+                        </div>
+                    </a>
+                    {% else %}
+                    <div class="block bg-white/90 backdrop-blur-md rounded-xl shadow-md overflow-hidden opacity-75">
+                        <div class="p-6 text-center">
+                            <i class="fas fa-image text-4xl text-primary mb-4"></i>
+                            <h3 class="text-xl font-semibold text-gray-800 mb-3">Imagen a Texto</h3>
+                            <span
+                                class="absolute top-4 right-4 bg-yellow-400 text-xs font-semibold px-2 py-1 rounded-full">
+                                Servicio no disponible
+                            </span>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Generación de Texto -->
+                <div class="group">
+                    {% if services_status.ollama %}
+                    <a href="/generate-text"
+                        class="block bg-white/90 backdrop-blur-md rounded-xl shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden">
+                        <div class="p-6 text-center">
+                            <i class="fas fa-comment-dots text-4xl text-primary mb-4"></i>
+                            <h3 class="text-xl font-semibold text-gray-800 mb-3">Generación de Texto</h3>
+                        </div>
+                    </a>
+                    {% else %}
+                    <div class="block bg-white/90 backdrop-blur-md rounded-xl shadow-md overflow-hidden opacity-75">
+                        <div class="p-6 text-center">
+                            <i class="fas fa-comment-dots text-4xl text-primary mb-4"></i>
+                            <h3 class="text-xl font-semibold text-gray-800 mb-3">Generación de Texto</h3>
+                            <span
+                                class="absolute top-4 right-4 bg-yellow-400 text-xs font-semibold px-2 py-1 rounded-full">
+                                Servicio no disponible
+                            </span>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Texto a Audio -->
+                <div class="group">
+                    {% if services_status.xtts %}
+                    <a href="/text-to-audio"
+                        class="block bg-white/90 backdrop-blur-md rounded-xl shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden">
+                        <div class="p-6 text-center">
+                            <i class="fas fa-microphone text-4xl text-primary mb-4"></i>
+                            <h3 class="text-xl font-semibold text-gray-800 mb-3">Texto a Audio</h3>
+                        </div>
+                    </a>
+                    {% else %}
+                    <div class="block bg-white/90 backdrop-blur-md rounded-xl shadow-md overflow-hidden opacity-75">
+                        <div class="p-6 text-center">
+                            <i class="fas fa-microphone text-4xl text-primary mb-4"></i>
+                            <h3 class="text-xl font-semibold text-gray-800 mb-3">Texto a Audio</h3>
+                            <span
+                                class="absolute top-4 right-4 bg-yellow-400 text-xs font-semibold px-2 py-1 rounded-full">
+                                Servicio no disponible
+                            </span>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+                <!-- Audio a Texto -->
+                <div class="group">
+                    {% if services_status.whisper %}
+                    <a href="/audio-to-text"
+                        class="block bg-white/90 backdrop-blur-md rounded-xl shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden">
+                        <div class="p-6 text-center">
+                            <i class="fas fa-volume-up text-4xl text-primary mb-4"></i>
+                            <h3 class="text-xl font-semibold text-gray-800 mb-3">Audio a Texto</h3>
+                        </div>
+                    </a>
+                    {% else %}
+                    <div class="block bg-white/90 backdrop-blur-md rounded-xl shadow-md overflow-hidden opacity-75">
+                        <div class="p-6 text-center">
+                            <i class="fas fa-volume-up text-4xl text-primary mb-4"></i>
+                            <h3 class="text-xl font-semibold text-gray-800 mb-3">Audio a Texto</h3>
+                            <span
+                                class="absolute top-4 right-4 bg-yellow-400 text-xs font-semibold px-2 py-1 rounded-full">
+                                Servicio no disponible
+                            </span>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Análisis de Sentimiento -->
+                <div class="group relative">
+                    <div class="block bg-white/90 backdrop-blur-md rounded-xl shadow-md overflow-hidden opacity-75">
+                        <div class="p-6 text-center">
+                            <i class="fas fa-smile text-4xl text-primary mb-4"></i>
+                            <h3 class="text-xl font-semibold text-gray-800 mb-3">Análisis de Sentimiento</h3>
+                            <span
+                                class="absolute top-4 right-4 bg-yellow-400 text-xs font-semibold px-2 py-1 rounded-full">
+                                Próximamente
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

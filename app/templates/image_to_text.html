@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Imagen a Texto - Ollama</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3b82f6',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+
+<body class="bg-gradient-to-br from-gray-50 to-blue-100 min-h-screen">
+    <!-- Navbar -->
+    <nav class="fixed top-0 left-0 right-0 bg-white/90 backdrop-blur-md shadow-sm z-50">
+        <div class="container mx-auto px-4">
+            <div class="flex items-center justify-between h-16">
+                <a href="/" class="flex items-center space-x-2 text-gray-800">
+                    <i class="fas fa-robot text-primary text-xl"></i>
+                    <span class="font-semibold text-lg">Interfaces de IA</span>
+                </a>
+                <a href="/"
+                    class="flex items-center space-x-2 text-gray-600 hover:text-primary transition-colors px-4 py-2 rounded-lg hover:bg-gray-50">
+                    <i class="fas fa-home text-lg"></i>
+                    <span class="font-medium">Inicio</span>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container mx-auto px-4 pt-24 pb-12">
+        <div class="max-w-4xl mx-auto">
+            <!-- Main Card -->
+            <div class="bg-white/90 backdrop-blur-md rounded-xl shadow-lg p-6 md:p-8">
+                <div class="flex items-center space-x-3 mb-8">
+                    <div class="bg-primary/10 rounded-lg p-3">
+                        <i class="fas fa-image text-2xl text-primary"></i>
+                    </div>
+                    <h1 class="text-2xl md:text-3xl font-bold text-gray-800">Imagen a Texto</h1>
+                </div>
+
+                <form method="POST" id="imageForm" class="space-y-6">
+                    <!-- Model Selection -->
+                    <div class="space-y-2">
+                        <label for="modelo" class="block text-sm font-medium text-gray-700">
+                            Selecciona el Modelo
+                        </label>
+                        <select id="modelo" name="modelo" required class="w-full px-4 py-2.5 rounded-lg border border-gray-300 bg-white/80
+                                       focus:ring-2 focus:ring-primary/20 focus:border-primary
+                                       transition-all duration-200 cursor-pointer hover:border-primary/50">
+                            {% for modelo_id, modelo_nombre in modelos.items() %}
+                            <option value="{{ modelo_id }}">{{ modelo_nombre }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Image Upload -->
+                    <div class="space-y-2">
+                        <label class="block text-sm font-medium text-gray-700">
+                            Selecciona una Imagen
+                        </label>
+                        <div
+                            class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-lg hover:border-primary/50 transition-colors">
+                            <div class="space-y-1 text-center">
+                                <div class="flex flex-col items-center">
+                                    <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-3"></i>
+                                    <div class="flex text-sm text-gray-600">
+                                        <label for="file-upload"
+                                            class="relative cursor-pointer rounded-md font-medium text-primary hover:text-primary/80 focus-within:outline-none">
+                                            <span>Sube una imagen</span>
+                                            <input id="file-upload" name="imagen" type="file" class="sr-only"
+                                                accept="image/*">
+                                        </label>
+                                        <p class="pl-1">o arrastra y suelta</p>
+                                    </div>
+                                    <p class="text-xs text-gray-500">PNG, JPG, GIF hasta 10MB</p>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Preview Container -->
+                        <div id="preview-container" class="hidden mt-4">
+                            <img id="preview-image" src="" alt="Preview" class="max-h-64 rounded-lg mx-auto">
+                            <button type="button" id="remove-image"
+                                class="mt-2 text-sm text-red-600 hover:text-red-800">
+                                <i class="fas fa-times mr-1"></i>Eliminar imagen
+                            </button>
+                        </div>
+                        <input type="hidden" name="imagen_subida" id="imagen_subida">
+                    </div>
+
+                    <!-- Prompt Input -->
+                    <div class="space-y-2">
+                        <label for="prompt" class="block text-sm font-medium text-gray-700">
+                            Prompt
+                        </label>
+                        <textarea id="prompt" name="prompt" rows="4" required placeholder="Escribe tu prompt aquí..."
+                            class="w-full px-4 py-3 rounded-lg border border-gray-300 bg-white/80
+                                         focus:ring-2 focus:ring-primary/20 focus:border-primary
+                                         transition-all duration-200 resize-none placeholder-gray-400
+                                         hover:border-primary/50"></textarea>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="flex justify-end">
+                        <button type="submit" class="inline-flex items-center px-6 py-2.5 bg-primary hover:bg-primary/90
+                                       text-white rounded-lg shadow-md hover:shadow-lg
+                                       transform hover:-translate-y-0.5 transition-all duration-200">
+                            <i class="fas fa-magic mr-2"></i>
+                            <span>Analizar Imagen</span>
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Error Message -->
+                {% if error_message %}
+                <div class="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+                    <div class="flex items-center space-x-3">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-exclamation-circle text-red-500 text-xl"></i>
+                        </div>
+                        <div class="flex-1">
+                            <p class="text-sm text-red-700">{{ error_message }}</p>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Loading Spinner -->
+                <div id="loading" class="hidden">
+                    <div class="flex flex-col items-center justify-center py-12">
+                        <div class="relative">
+                            <div
+                                class="animate-spin rounded-full h-16 w-16 border-4 border-primary/20 border-t-primary">
+                            </div>
+                            <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                                <i class="fas fa-image text-primary/40 text-xl"></i>
+                            </div>
+                        </div>
+                        <p class="mt-4 text-gray-600 font-medium">Analizando imagen...</p>
+                    </div>
+                </div>
+
+                <!-- Response Container -->
+                {% if respuesta %}
+                <div class="mt-8 space-y-4">
+                    <div class="flex items-center space-x-2 text-gray-800">
+                        <i class="fas fa-robot text-primary"></i>
+                        <h2 class="text-xl font-semibold">Respuesta:</h2>
+                    </div>
+                    <div class="bg-gray-50/80 backdrop-blur-sm rounded-lg p-6 shadow-inner border border-gray-200">
+                        <div class="prose prose-lg prose-blue max-w-none">
+                            {{ respuesta | safe }}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-white/90 backdrop-blur-md py-6 mt-12">
+        <div class="container mx-auto px-4 text-center text-gray-600">
+            <p>© 2024 Interfaces de IA. Todos los derechos reservados.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Función para manejar la subida de archivos
+        function handleFileUpload(file) {
+            const formData = new FormData();
+            formData.append('imagen', file);
+
+            fetch('/upload-image', {
+                method: 'POST',
+                body: formData
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        document.getElementById('imagen_subida').value = data.imagen_subida;
+                        document.getElementById('preview-image').src = '/static/' + data.imagen_subida;
+                        document.getElementById('preview-container').classList.remove('hidden');
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        // Event listener para el input de archivo
+        document.getElementById('file-upload').addEventListener('change', function (e) {
+            if (e.target.files && e.target.files[0]) {
+                handleFileUpload(e.target.files[0]);
+            }
+        });
+
+        // Event listener para drag and drop
+        const dropZone = document.querySelector('form');
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        dropZone.addEventListener('drop', function (e) {
+            const dt = e.dataTransfer;
+            const file = dt.files[0];
+            handleFileUpload(file);
+        });
+
+        // Event listener para eliminar imagen
+        document.getElementById('remove-image').addEventListener('click', function () {
+            document.getElementById('preview-container').classList.add('hidden');
+            document.getElementById('imagen_subida').value = '';
+            document.getElementById('file-upload').value = '';
+        });
+
+        // Event listener para el formulario
+        document.getElementById('imageForm').addEventListener('submit', function (e) {
+            document.getElementById('loading').classList.remove('hidden');
+        });
+    </script>
+</body>
+
+</html>

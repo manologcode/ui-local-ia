@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Texto a Audio - XTTS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3b82f6',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+
+<body class="bg-gradient-to-br from-gray-50 to-blue-100 min-h-screen">
+    <!-- Navbar -->
+    <nav class="fixed top-0 left-0 right-0 bg-white/90 backdrop-blur-md shadow-sm z-50">
+        <div class="container mx-auto px-4">
+            <div class="flex items-center justify-between h-16">
+                <a href="/" class="flex items-center space-x-2 text-gray-800">
+                    <i class="fas fa-robot text-primary text-xl"></i>
+                    <span class="font-semibold text-lg">Interfaces de IA</span>
+                </a>
+                <a href="/"
+                    class="flex items-center space-x-2 text-gray-600 hover:text-primary transition-colors px-4 py-2 rounded-lg hover:bg-gray-50">
+                    <i class="fas fa-home text-lg"></i>
+                    <span class="font-medium">Inicio</span>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container mx-auto px-4 pt-24 pb-12">
+        <div class="max-w-4xl mx-auto">
+            <!-- Main Card -->
+            <div class="bg-white/90 backdrop-blur-md rounded-xl shadow-lg p-6 md:p-8">
+                <div class="flex items-center space-x-3 mb-8">
+                    <div class="bg-primary/10 rounded-lg p-3">
+                        <i class="fas fa-microphone text-2xl text-primary"></i>
+                    </div>
+                    <h1 class="text-2xl md:text-3xl font-bold text-gray-800">Texto a Audio</h1>
+                </div>
+
+                <form id="audioForm" class="space-y-6">
+                    <!-- Text Input -->
+                    <div class="space-y-2">
+                        <label for="text" class="block text-sm font-medium text-gray-700">
+                            Texto a convertir
+                        </label>
+                        <textarea id="text" name="text" rows="4" required
+                            placeholder="Escribe el texto que quieres convertir a audio..." class="w-full px-4 py-3 rounded-lg border border-gray-300 bg-white/80
+                                         focus:ring-2 focus:ring-primary/20 focus:border-primary
+                                         transition-all duration-200 resize-none placeholder-gray-400
+                                         hover:border-primary/50"></textarea>
+                    </div>
+
+                    <!-- Voice Selection -->
+                    <div class="space-y-2">
+                        <label for="voice" class="block text-sm font-medium text-gray-700">
+                            Voz
+                        </label>
+                        <select id="voice" name="voice" required class="w-full px-4 py-2.5 rounded-lg border border-gray-300 bg-white/80
+                                       focus:ring-2 focus:ring-primary/20 focus:border-primary
+                                       transition-all duration-200 cursor-pointer hover:border-primary/50">
+                            <option value="Xavier Hayasaka" selected>Xavier Hayasaka</option>
+                            <option value="Annmarie Nele">Annmarie Nele</option>
+                            <option value="Marcos Rudaski">Marcos Rudaski</option>
+                            <option value="Uta Obando">Uta Obando</option>
+                            <option value="Adde Michal">Adde Michal</option>
+                        </select>
+                    </div>
+
+                    <!-- Language Selection -->
+                    <div class="space-y-2">
+                        <label for="lang" class="block text-sm font-medium text-gray-700">
+                            Idioma
+                        </label>
+                        <select id="lang" name="lang" required class="w-full px-4 py-2.5 rounded-lg border border-gray-300 bg-white/80
+                                       focus:ring-2 focus:ring-primary/20 focus:border-primary
+                                       transition-all duration-200 cursor-pointer hover:border-primary/50">
+                            <option value="es" selected>Español</option>
+                            <option value="en">Inglés</option>
+                            <option value="fr">Francés</option>
+                            <option value="de">Alemán</option>
+                            <option value="it">Italiano</option>
+                            <option value="pt">Portugués</option>
+                        </select>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="flex justify-end">
+                        <button type="submit" class="inline-flex items-center px-6 py-2.5 bg-primary hover:bg-primary/90
+                                       text-white rounded-lg shadow-md hover:shadow-lg
+                                       transform hover:-translate-y-0.5 transition-all duration-200">
+                            <i class="fas fa-microphone mr-2"></i>
+                            <span>Generar Audio</span>
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Loading Spinner -->
+                <div id="loading" class="hidden">
+                    <div class="flex flex-col items-center justify-center py-12">
+                        <div class="relative">
+                            <div
+                                class="animate-spin rounded-full h-16 w-16 border-4 border-primary/20 border-t-primary">
+                            </div>
+                            <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                                <i class="fas fa-music text-primary/40 text-xl"></i>
+                            </div>
+                        </div>
+                        <p class="mt-4 text-gray-600 font-medium">Generando audio...</p>
+                    </div>
+                </div>
+
+                <!-- Error Message -->
+                <div id="errorMessage" class="hidden mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+                    <div class="flex items-center text-red-700">
+                        <i class="fas fa-exclamation-circle mr-2"></i>
+                        <p id="errorText"></p>
+                    </div>
+                </div>
+
+                <!-- Audio Player Container -->
+                <div id="audioContainer" class="hidden mt-8 space-y-4">
+                    <div class="flex items-center space-x-2 text-gray-800">
+                        <i class="fas fa-headphones text-primary"></i>
+                        <h2 class="text-xl font-semibold">Audio Generado:</h2>
+                    </div>
+                    <div class="bg-gray-50/80 backdrop-blur-sm rounded-lg p-6 shadow-inner border border-gray-200">
+                        <audio id="audioPlayer" controls class="w-full">
+                            <source src="" type="audio/mpeg">
+                            Tu navegador no soporta el elemento de audio.
+                        </audio>
+                        <div class="mt-4 text-center">
+                            <a id="downloadLink" href="#" download="audio.mp3"
+                                class="inline-flex items-center px-4 py-2 bg-primary/10 text-primary rounded-lg hover:bg-primary/20 transition-colors">
+                                <i class="fas fa-download mr-2"></i>
+                                Descargar audio
+                            </a>
+                        </div>
+                    </div>
+                    <!-- Input and Button for Podcast -->
+                    <div id="podcastActions" class="hidden mt-4 space-y-4">
+                        <label for="podcastTitle" class="block text-sm font-medium text-gray-700">
+                            Título para el podcast
+                        </label>
+                        <input type="text" id="podcastTitle" name="podcastTitle" class="w-full px-4 py-2.5 rounded-lg border border-gray-300 bg-white/80
+                                      focus:ring-2 focus:ring-primary/20 focus:border-primary
+                                      transition-all duration-200 placeholder-gray-400
+                                      hover:border-primary/50">
+                        <button id="uploadPodcastButton" class="inline-flex items-center px-6 py-2.5 bg-green-500 hover:bg-green-600
+                                       text-white rounded-lg shadow-md hover:shadow-lg
+                                       transform hover:-translate-y-0.5 transition-all duration-200">
+                            <i class="fas fa-upload mr-2"></i>
+                            <span>Subir a podcast</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-white/90 backdrop-blur-md py-6 mt-12">
+        <div class="container mx-auto px-4 text-center text-gray-600">
+            <p>© 2024 Interfaces de IA. Todos los derechos reservados.</p>
+        </div>
+    </footer>
+
+    <script>
+        // URL base de la API
+        const XTTS_API_URL = '{{ xtts_api_url }}';
+        const API_BASE_URL = '{{ api_base_url }}';
+
+        // Referencias a elementos del DOM
+        const audioForm = document.getElementById('audioForm');
+        const loading = document.getElementById('loading');
+        const errorMessage = document.getElementById('errorMessage');
+        const errorText = document.getElementById('errorText');
+        const audioContainer = document.getElementById('audioContainer');
+        const audioPlayer = document.getElementById('audioPlayer');
+        const downloadLink = document.getElementById('downloadLink');
+        const podcastActions = document.getElementById('podcastActions');
+        const podcastTitleInput = document.getElementById('podcastTitle');
+        const uploadPodcastButton = document.getElementById('uploadPodcastButton');
+        const textInput = document.getElementById('text'); // Get reference to the text input
+
+        // Función para mostrar error
+        function showError(message) {
+            errorText.textContent = message;
+            errorMessage.classList.remove('hidden');
+            loading.classList.add('hidden');
+            audioContainer.classList.add('hidden');
+            podcastActions.classList.add('hidden'); // Hide podcast actions on error
+        }
+
+        // Función para ocultar error
+        function hideError() {
+            errorMessage.classList.add('hidden');
+        }
+
+        // Función para comprobar el estado de la tarea
+        async function checkJobStatus(jobId) {
+            try {
+                const response = await fetch(`${XTTS_API_URL}/status/${jobId}`);
+
+                if (!response.ok) {
+                    throw new Error(`Error al verificar estado: ${response.status}`);
+                }
+
+                const statusData = await response.json();
+
+                if (statusData.status === 'completed') {
+                    // Crear URL del audio
+                    const audioUrl = `${XTTS_API_URL}/audio/${jobId}`;
+
+                    // Actualizar reproductor y enlace de descarga
+                    audioPlayer.src = audioUrl;
+                    downloadLink.href = audioUrl;
+
+                    // Mostrar contenedor de audio
+                    audioContainer.classList.remove('hidden');
+                    loading.classList.add('hidden');
+                    hideError();
+
+                    // Populate podcast title and show actions
+                    podcastTitleInput.value = textInput.value.substring(0, 100); // Use the original text, truncated
+                    podcastActions.classList.remove('hidden');
+
+                } else if (statusData.status === 'failed') {
+                    showError(statusData.error_message || 'Error al generar el audio');
+                } else {
+                    // Seguir comprobando si está en proceso
+                    setTimeout(() => checkJobStatus(jobId), 2000);
+                }
+
+            } catch (error) {
+                console.error('Error al verificar estado:', error);
+                showError(error.message);
+            }
+        }
+
+        // Manejar envío del formulario
+        audioForm.addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            // Obtener valores del formulario
+            const text = document.getElementById('text').value;
+            const voice = document.getElementById('voice').value;
+            const lang = document.getElementById('lang').value;
+
+            // Validar entrada
+            if (!text.trim()) {
+                showError('Por favor, introduce un texto para convertir.');
+                return;
+            }
+
+            // Preparar UI
+            loading.classList.remove('hidden');
+            audioContainer.classList.add('hidden');
+            hideError();
+
+            try {
+                // Enviar solicitud a la API
+                const response = await fetch(`${XTTS_API_URL}/text-to-speech`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        text: text,
+                        voice: voice,
+                        lang: lang
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Error: ${response.status}`);
+                }
+
+                const data = await response.json();
+                checkJobStatus(data.job_id);
+
+            } catch (error) {
+                console.error('Error:', error);
+                showError(error.message);
+            }
+        });
+
+        // Manejar clic del botón Subir a podcast
+        uploadPodcastButton.addEventListener('click', async function () {
+            const audioUrl = audioPlayer.src;
+            const podcastTitle = podcastTitleInput.value;
+
+            if (!audioUrl || !podcastTitle.trim()) {
+                showError('No hay audio generado o el título del podcast está vacío.');
+                return;
+            }
+
+            // You would typically send this data to a server endpoint
+            console.log('Subir a podcast:', { audioUrl, podcastTitle });
+
+            // Example of sending data to a new endpoint (you need to implement this server-side)
+            try {
+                const response = await fetch(`${API_BASE_URL}/upload-podcast`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        title: podcastTitle,
+                        text: textInput.value, // Include the text from the input field
+                        mp3_url: audioUrl // Use the audioUrl as the mp3_path
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Error al subir a podcast: ${response.status}`);
+                }
+
+                const result = await response.json();
+                console.log('Resultado de subir a podcast:', result);
+                // Optionally show a success message to the user
+                alert('Audio subido a podcast con éxito!');
+
+            } catch (error) {
+                console.error('Error al subir a podcast:', error);
+                showError(`Error al subir a podcast: ${error.message}`);
+            }
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,23 @@
+services:
+  flask-app:
+
+    image: "manologcode/ui-local-ia"
+    build: .
+    container_name: ui-local-ia
+    #command: ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "5000", "--reload"]
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./app:/app
+    environment:
+      - FLASK_APP=app.py
+      - FLASK_ENV=development
+
+      - OLLAMA_API_URL=http://192.168.1.69:11434
+      - XTTS_API_URL=http://192.168.1.69:5008
+      - WHISPER_API_URL=http://192.168.1.69:5510
+      - API_BASE_URL = 'http://localhost:5000'
+      - PODCAST_URL_BASE = http://192.168.1.69:5002
+      - PODCAST_TOKEN = http://192.168.1.69:5002
+      - PODCAST_ID = 2
+
