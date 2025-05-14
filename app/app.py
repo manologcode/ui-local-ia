@@ -301,19 +301,23 @@ def upload_podcast():
 
     episode_data = create_episode(**data)
     if episode_data:
-        print("Episode created successfully:")
-        print(episode_data)
+        app.logger.info("Episode created successfully:")
+        app.logger.info(episode_data)
+        # Construct the relative path for the response
+        relative_mp3_path = os.path.join('static', 'audio', audio_filename)
+
+        return jsonify({
+            'success': True,
+            'title': title,
+            'mp3_path': relative_mp3_path
+        }), 200
     else:
-        print("Failed to create episode.")
-
-    # Construct the relative path for the response
-    relative_mp3_path = os.path.join('static', 'audio', audio_filename)
-
-    return jsonify({
-        'success': True,
-        'title': title,
-        'mp3_path': relative_mp3_path
-    }), 200
+        app.logger.error("Failed to create episode.")
+        # Return an error response to the frontend
+        return jsonify({
+            'success': False,
+            'error': 'Failed to create podcast episode. Please try again.'
+        }), 500
 
 
 

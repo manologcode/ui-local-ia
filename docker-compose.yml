@@ -4,11 +4,11 @@ services:
     image: "manologcode/ui-local-ia"
     build: .
     container_name: ui-local-ia
-    command: [ "gunicorn", "-w", "4", "-b", "0.0.0.0:5000", "app:app" ]
+    command: [ "gunicorn", "-w", "4", "-b", "0.0.0.0:5000", "app:app", "--reload" ]
     ports:
       - "5000:5000"
     volumes:
-      - ./app:/app
+      - ./app:/app/
     environment:
       - FLASK_APP=app.py
       - FLASK_ENV=development
@@ -18,5 +18,5 @@ services:
       - WHISPER_API_URL=http://192.168.1.69:5510
       - API_BASE_URL=http://localhost:5000
       - PODCAST_URL_BASE=http://192.168.1.69:5002
-      - PODCAST_TOKEN=patatafrita
+      - PODCAST_TOKEN=mi_secret_token
       - PODCAST_ID=2

@@ -141,29 +141,33 @@
                             <source src="" type="audio/mpeg">
                             Tu navegador no soporta el elemento de audio.
                         </audio>
-                        <div class="mt-4 text-center">
-                            <a id="downloadLink" href="#" download="audio.mp3"
-                                class="inline-flex items-center px-4 py-2 bg-primary/10 text-primary rounded-lg hover:bg-primary/20 transition-colors">
-                                <i class="fas fa-download mr-2"></i>
-                                Descargar audio
-                            </a>
+
+                        <!-- Contenedor en línea para descarga -->
+                        <a id="downloadLink" href="#" download="audio.mp3"
+                            class="inline-flex items-center px-4 py-2 bg-primary/10 text-primary rounded-lg hover:bg-primary/20 transition-colors">
+                            <i class="fas fa-download mr-2"></i>
+                            Descargar
+                        </a>
+
+                        <!-- Contenedor para título y subida de podcast -->
+                        <div id="podcastActions" class="hidden mt-4 flex flex-wrap items-center gap-3">
+                            <!-- Input para título de podcast -->
+                            <div class="flex-1 min-w-[200px]">
+                                <input type="text" id="podcastTitle" name="podcastTitle"
+                                    placeholder="Título para el podcast" class="w-full px-4 py-2 rounded-lg border border-gray-300 bg-white/80
+                                    focus:ring-2 focus:ring-primary/20 focus:border-primary
+                                    transition-all duration-200 placeholder-gray-400
+                                    hover:border-primary/50">
+                            </div>
+
+                            <!-- Botón para subir a podcast -->
+                            <button id="uploadPodcastButton" class="inline-flex items-center px-4 py-2 bg-green-500 hover:bg-green-600
+                                text-white rounded-lg shadow-md hover:shadow-lg
+                                transform hover:-translate-y-0.5 transition-all duration-200">
+                                <i class="fas fa-upload mr-2"></i>
+                                <span>Subir a podcast</span>
+                            </button>
                         </div>
-                    </div>
-                    <!-- Input and Button for Podcast -->
-                    <div id="podcastActions" class="hidden mt-4 space-y-4">
-                        <label for="podcastTitle" class="block text-sm font-medium text-gray-700">
-                            Título para el podcast
-                        </label>
-                        <input type="text" id="podcastTitle" name="podcastTitle" class="w-full px-4 py-2.5 rounded-lg border border-gray-300 bg-white/80
-                                      focus:ring-2 focus:ring-primary/20 focus:border-primary
-                                      transition-all duration-200 placeholder-gray-400
-                                      hover:border-primary/50">
-                        <button id="uploadPodcastButton" class="inline-flex items-center px-6 py-2.5 bg-green-500 hover:bg-green-600
-                                       text-white rounded-lg shadow-md hover:shadow-lg
-                                       transform hover:-translate-y-0.5 transition-all duration-200">
-                            <i class="fas fa-upload mr-2"></i>
-                            <span>Subir a podcast</span>
-                        </button>
                     </div>
                 </div>
             </div>
@@ -190,23 +194,33 @@
         const audioContainer = document.getElementById('audioContainer');
         const audioPlayer = document.getElementById('audioPlayer');
         const downloadLink = document.getElementById('downloadLink');
-        const podcastActions = document.getElementById('podcastActions');
         const podcastTitleInput = document.getElementById('podcastTitle');
         const uploadPodcastButton = document.getElementById('uploadPodcastButton');
         const textInput = document.getElementById('text'); // Get reference to the text input
+        const podcastActions = document.getElementById('podcastActions'); // Get reference to the podcast actions container
 
         // Función para mostrar error
         function showError(message) {
             errorText.textContent = message;
             errorMessage.classList.remove('hidden');
+            errorMessage.classList.add('bg-red-50', 'border-red-200');
+            errorText.classList.add('text-red-700');
             loading.classList.add('hidden');
             audioContainer.classList.add('hidden');
-            podcastActions.classList.add('hidden'); // Hide podcast actions on error
         }
 
         // Función para ocultar error
         function hideError() {
             errorMessage.classList.add('hidden');
+        }
+
+        // Función para mostrar mensaje de éxito
+        function showSuccess(message) {
+            errorText.textContent = message;
+            errorMessage.classList.remove('hidden', 'bg-red-50', 'border-red-200');
+            errorMessage.classList.add('bg-green-50', 'border-green-200');
+            errorText.classList.remove('text-red-700');
+            errorText.classList.add('text-green-700');
         }
 
         // Función para comprobar el estado de la tarea
@@ -227,6 +241,9 @@
                     // Actualizar reproductor y enlace de descarga
                     audioPlayer.src = audioUrl;
                     downloadLink.href = audioUrl;
+
+                    // Establecer título sugerido para el podcast
+                    podcastTitleInput.value = textInput.value.substring(0, 100);
 
                     // Mostrar contenedor de audio
                     audioContainer.classList.remove('hidden');
@@ -303,7 +320,7 @@
             const podcastTitle = podcastTitleInput.value;
 
             if (!audioUrl || !podcastTitle.trim()) {
-                showError('No hay audio generado o el título del podcast está vacío.');
+                showErrorWithCustomVisibility('No hay audio generado o el título del podcast está vacío.', true);
                 return;
             }
 
@@ -330,14 +347,64 @@
 
                 const result = await response.json();
                 console.log('Resultado de subir a podcast:', result);
-                // Optionally show a success message to the user
-                alert('Audio subido a podcast con éxito!');
+
+                if (result.success) {
+                    // Display a success message
+                    showSuccess('Audio subido a podcast con éxito!');
+                } else {
+                    // Handle the specific error message from server
+                    const errorMsg = result.error || 'Failed to create podcast episode. Please try again.';
+                    showErrorWithCustomVisibility(errorMsg, true);
+
+                    // Log additional details if available
+                    if (result.details) {
+                        console.error('Detalles del error:', result.details);
+                    }
+                }
 
             } catch (error) {
                 console.error('Error al subir a podcast:', error);
-                showError(`Error al subir a podcast: ${error.message}`);
+                // Mostrar el error específico o el mensaje genérico
+                let errorMsg = 'Failed to create podcast episode. Please try again.';
+
+                if (error.message) {
+                    // Si hay un mensaje específico del error, lo usamos
+                    errorMsg = `Error al subir a podcast: ${error.message}`;
+                }
+
+                // Mostrar el error pero mantener visible las acciones de podcast
+                showErrorWithCustomVisibility(errorMsg, true);
             }
         });
+
+        // Función personalizada para mostrar error pero mantener ciertas partes de la UI
+        function showErrorWithCustomVisibility(message, keepAudioPlayer = false) {
+            // Reset error message styling first
+            errorMessage.classList.remove('bg-green-50', 'border-green-200');
+            errorMessage.classList.add('bg-red-50', 'border-red-200');
+            errorText.classList.remove('text-green-700');
+            errorText.classList.add('text-red-700');
+
+            // Mostrar mensaje de error
+            errorText.textContent = message;
+            errorMessage.classList.remove('hidden');
+            loading.classList.add('hidden');
+
+            // Si debemos mantener audioContainer
+            if (!keepAudioPlayer) {
+                audioContainer.classList.add('hidden');
+            }
+        }
+
+        // Reemplazar la función showError original
+        const originalShowError = showError;
+        showError = function (message) {
+            // Verificar si el error está relacionado con la carga de podcast
+            const isPodcastError = message.includes('podcast');
+
+            // Usar la función personalizada
+            showErrorWithCustomVisibility(message, isPodcastError);
+        };
     </script>
 </body>
 
