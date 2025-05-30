@@ -234,7 +234,7 @@ def audio_to_text():
                 try:
                     # Send the audio file to the Whisper service
                     files = {'file': (file.filename, file.stream, file.content_type)}
-                    whisper_url = 'http://192.168.1.69:5090/'
+                    whisper_url = WHISPER_API_URL
                     response = requests.post(whisper_url, files=files)
 
                     if response.status_code == 200:
