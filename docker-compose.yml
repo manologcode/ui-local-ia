@@ -15,7 +15,7 @@ services:
 
       - OLLAMA_API_URL=http://192.168.1.69:11434
       - XTTS_API_URL=http://192.168.1.69:5008
-      - WHISPER_API_URL=http://192.168.1.69:5510
+      - WHISPER_API_URL=http://192.168.1.69:5090
       - API_BASE_URL=http://localhost:5000
       - PODCAST_URL_BASE=http://192.168.1.69:5002
       - PODCAST_TOKEN=mi_secret_token

@@ -232,13 +232,15 @@ def audio_to_text():
                 error_message = "No selected file."
             else:
                 try:
-                    # Send the audio file to the Whisper service
-                    files = {'file': (file.filename, file.stream, file.content_type)}
-                    whisper_url = WHISPER_API_URL
+                    # Send the audio file to the Whisper service using requests
+                    files = {'audio_file': (file.filename, file.stream, file.content_type)}
+                    # Use the hardcoded URL as requested by the user
+                    whisper_url = f'{WHISPER_API_URL}/asr?encode=true&task=transcribe&output=txt'
                     response = requests.post(whisper_url, files=files)
 
                     if response.status_code == 200:
-                        transcription = response.json().get('text', 'No transcription received.')
+                        # Assuming the response is text directly as per the curl example output=txt
+                        transcription = response.text.strip()
                     else:
                         error_message = f"Error from Whisper service: {response.status_code} - {response.text}"
                 except requests.exceptions.ConnectionError:
