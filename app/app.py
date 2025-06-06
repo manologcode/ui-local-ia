@@ -17,7 +17,7 @@ ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 ALLOWED_AUDIO_EXTENSIONS = {'mp3', 'wav', 'ogg'} # Added allowed audio extensions
 
 # URLs de los servicios
-OLLAMA_API_URL = os.environ.get('OLLAMA_API_URL', 'http://localhost:11434/api/generate')
+OLLAMA_API_URL = os.environ.get('OLLAMA_API_URL', 'http://localhost:11434')
 XTTS_API_URL = os.environ.get('XTTS_API_URL', 'http://localhost:5008')
 WHISPER_API_URL = os.environ.get('WHISPER_API_URL', 'http://localhost:5090')
 
