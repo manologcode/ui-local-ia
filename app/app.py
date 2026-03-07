@@ -31,7 +31,9 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(AUDIO_FOLDER, exist_ok=True) # Ensure audio directory exists
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # Limitar tamaño a 16MB
+# Set max request size (default 512MB, configurable via environment variable)
+max_size_mb = int(os.environ.get('MAX_REQUEST_SIZE_MB', 512))
+app.config['MAX_CONTENT_LENGTH'] = max_size_mb * 1024 * 1024
 
 # Inicializar el cliente de Ollama
 ollama_client = OllamaClient()
@@ -94,11 +96,13 @@ def generate_text():
 def text_to_audio():
     """Endpoint para convertir texto a audio"""
     xtts_api_url = os.environ.get('XTTS_API_URL', 'http://localhost:5008')
+    speakers = ['Claribel Dervla', 'Daisy Studious', 'Gracie Wise', 'Tammie Ema', 'Alison Dietlinde', 'Ana Florence', 'Annmarie Nele', 'Asya Anara', 'Brenda Stern', 'Gitta Nikolina', 'Henriette Usha', 'Sofia Hellen', 'Tammy Grit', 'Tanja Adelina', 'Vjollca Johnnie', 'Andrew Chipper', 'Badr Odhiambo', 'Dionisio Schuyler', 'Royston Min', 'Viktor Eka', 'Abrahan Mack', 'Adde Michal', 'Baldur Sanjin', 'Craig Gutsy', 'Damien Black', 'Gilberto Mathias', 'Ilkin Urbano', 'Kazuhiko Atallah', 'Ludvig Milivoj', 'Suad Qasim', 'Torcull Diarmuid', 'Viktor Menelaos', 'Zacharie Aimilios', 'Nova Hogarth', 'Maja Ruoho', 'Uta Obando', 'Lidiya Szekeres', 'Chandra MacFarland', 'Szofi Granger', 'Camilla Holmström', 'Lilya Stainthorpe', 'Zofija Kendrick', 'Narelle Moon', 'Barbora MacLean', 'Alexandra Hisakawa', 'Alma María', 'Rosemary Okafor', 'Ige Behringer', 'Filip Traverse', 'Damjan Chapman', 'Wulf Carlevaro', 'Aaron Dreschner', 'Kumar Dahl', 'Eugenio Mataracı', 'Ferran Simen', 'Xavier Hayasaka', 'Luis Moray', 'Marcos Rudaski']
+
     # Construct the base URL for the Flask app
     # This assumes the app is accessed via the host and port it's running on
     # In a production environment, this might need to be more sophisticated
     api_base_url = f"http://{request.host}"
-    return render_template('text_to_audio.html', xtts_api_url=xtts_api_url, api_base_url=api_base_url)
+    return render_template('text_to_audio.html', xtts_api_url=xtts_api_url, api_base_url=api_base_url, speakers=speakers)
 
 @app.route('/check-audio-status/<task_id>')
 def check_audio_status(task_id):
@@ -222,6 +226,8 @@ def audio_to_text():
     """Endpoint for audio to text transcription"""
     transcription = None
     error_message = None
+    # Configurable timeout for Whisper service (default 300 seconds = 5 minutes)
+    whisper_timeout = int(os.environ.get('WHISPER_TIMEOUT', 300))
 
     if request.method == 'POST':
         if 'audioFile' not in request.files:
@@ -236,7 +242,7 @@ def audio_to_text():
                     files = {'audio_file': (file.filename, file.stream, file.content_type)}
                     # Use the hardcoded URL as requested by the user
                     whisper_url = f'{WHISPER_API_URL}/asr?encode=true&task=transcribe&output=txt'
-                    response = requests.post(whisper_url, files=files)
+                    response = requests.post(whisper_url, files=files, timeout=whisper_timeout)
 
                     if response.status_code == 200:
                         # Assuming the response is text directly as per the curl example output=txt

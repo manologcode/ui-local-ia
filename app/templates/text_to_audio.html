@@ -71,11 +71,9 @@
                         <select id="voice" name="voice" required class="w-full px-4 py-2.5 rounded-lg border border-gray-300 bg-white/80
                                        focus:ring-2 focus:ring-primary/20 focus:border-primary
                                        transition-all duration-200 cursor-pointer hover:border-primary/50">
-                            <option value="Xavier Hayasaka" selected>Xavier Hayasaka</option>
-                            <option value="Annmarie Nele">Annmarie Nele</option>
-                            <option value="Marcos Rudaski">Marcos Rudaski</option>
-                            <option value="Uta Obando">Uta Obando</option>
-                            <option value="Adde Michal">Adde Michal</option>
+                            {% for speaker in speakers %}
+                            <option value="{{ speaker }}" {% if loop.first %}selected{% endif %}>{{ speaker }}</option>
+                            {% endfor %}
                         </select>
                     </div>
 

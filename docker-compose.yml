@@ -12,7 +12,7 @@ services:
     environment:
       - FLASK_APP=app.py
       - FLASK_ENV=development
-
+      - MAX_REQUEST_SIZE_MB=1024  # 1GB limit
       - OLLAMA_API_URL=http://192.168.1.69:11434
       - XTTS_API_URL=http://192.168.1.69:5008
       - WHISPER_API_URL=http://192.168.1.69:5090
