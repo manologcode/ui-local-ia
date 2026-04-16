@@ -21,7 +21,7 @@ class OllamaClient:
 
         try:
             payload = self._prepare_payload(prompt, modelo, imagen_path)
-            response = requests.post(self.generate_url, json=payload)
+            response = requests.post(self.generate_url, json=payload, timeout=60)
 
             if response.status_code == 200:
                 respuesta = response.json()
@@ -29,14 +29,24 @@ class OllamaClient:
             else:
                 return f"Error: {response.status_code} - {response.text}"
 
+        except requests.exceptions.Timeout:
+            return "Error: La solicitud tardó demasiado tiempo. Por favor, intenta de nuevo."
+        except requests.exceptions.ConnectionError as e:
+            return f"Error de conexión: No se pudo conectar a Ollama. {str(e)}"
+        except requests.exceptions.RequestException as e:
+            return f"Error en la solicitud: {str(e)}"
         except Exception as e:
-            return f"Error en la conexión: {str(e)}"
+            return f"Error inesperado: {str(e)}"
 
     def _prepare_payload(self, prompt, modelo, imagen_path=None):
         payload = {
             'model': modelo,
             'prompt': prompt,
-            'stream': False
+            'stream': False,
+            'options': {
+                'num_ctx': 1024,
+                'num_batch': 32
+            }
         }
 
         if imagen_path and os.path.exists(imagen_path):
@@ -49,7 +59,7 @@ class OllamaClient:
     def list_models(self):
 
         try:
-            response = requests.get(self.tags_url)
+            response = requests.get(self.tags_url, timeout=60)
             response.raise_for_status()  # Raise an exception for bad status codes
 
             data = response.json()

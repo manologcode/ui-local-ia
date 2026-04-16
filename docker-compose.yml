@@ -4,7 +4,7 @@ services:
     image: "manologcode/ui-local-ia"
     build: .
     container_name: ui-local-ia
-    command: [ "gunicorn", "-w", "4", "-b", "0.0.0.0:5000", "app:app", "--reload" ]
+    command: [ "gunicorn", "-w", "4", "-b", "0.0.0.0:5000", "app:app", "--reload", "--timeout", "120" ]
     ports:
       - "5000:5000"
     volumes:

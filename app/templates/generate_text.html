@@ -61,7 +61,7 @@
                                        focus:ring-2 focus:ring-primary/20 focus:border-primary
                                        transition-all duration-200 cursor-pointer hover:border-primary/50">
                             {% for modelo_id, modelo_nombre in modelos.items() %}
-                            <option value="{{ modelo_id }}">{{ modelo_nombre }}</option>
+                            <option value="{{ modelo_id }}" {% if modelo_id == modelo_seleccionado %}selected{% endif %}>{{ modelo_nombre }}</option>
                             {% endfor %}
                         </select>
                     </div>
@@ -75,7 +75,7 @@
                             class="w-full px-4 py-3 rounded-lg border border-gray-300 bg-white/80
                                          focus:ring-2 focus:ring-primary/20 focus:border-primary
                                          transition-all duration-200 resize-none placeholder-gray-400
-                                         hover:border-primary/50"></textarea>
+                                         hover:border-primary/50">{{ prompt_input }}</textarea>
                     </div>
 
                     <!-- Submit Button -->
@@ -105,19 +105,21 @@
                 </div>
 
                 <!-- Response Container -->
-                {% if respuesta %}
-                <div class="mt-8 space-y-4">
-                    <div class="flex items-center space-x-2 text-gray-800">
-                        <i class="fas fa-robot text-primary"></i>
-                        <h2 class="text-xl font-semibold">Respuesta:</h2>
-                    </div>
-                    <div class="bg-gray-50/80 backdrop-blur-sm rounded-lg p-6 shadow-inner border border-gray-200">
-                        <div class="prose prose-lg prose-blue max-w-none">
-                            {{ respuesta | safe }}
+                <div id="responseContainer">
+                    {% if respuesta %}
+                    <div class="mt-8 space-y-4">
+                        <div class="flex items-center space-x-2 text-gray-800">
+                            <i class="fas fa-robot text-primary"></i>
+                            <h2 class="text-xl font-semibold">Respuesta:</h2>
+                        </div>
+                        <div class="bg-gray-50/80 backdrop-blur-sm rounded-lg p-6 shadow-inner border border-gray-200">
+                            <div class="prose prose-lg prose-blue max-w-none">
+                                {{ respuesta | safe }}
+                            </div>
                         </div>
                     </div>
+                    {% endif %}
                 </div>
-                {% endif %}
             </div>
         </div>
     </div>
@@ -132,6 +134,8 @@
     <script>
         document.getElementById('generateForm').addEventListener('submit', function (e) {
             document.getElementById('loading').classList.remove('hidden');
+            // Vaciar la caja de respuesta
+            document.getElementById('responseContainer').innerHTML = '';
         });
     </script>
 </body>

@@ -7,6 +7,7 @@ from ollama import OllamaClient
 from update_podcast import create_episode
 import requests
 import logging
+import markdown2
 
 app = Flask(__name__)
 logging.basicConfig(level=logging.DEBUG)
@@ -72,25 +73,30 @@ def index():
 def generate_text():
     """Endpoint para generar texto"""
     respuesta = None
+    modelo_seleccionado = None
+    prompt_input = ''
     available_models = ollama_client.list_models()
     modelos_dict = {model: model for model in available_models} # Create a dictionary for the template
 
     if request.method == 'POST':
         # Obtener datos del formulario
-        prompt = request.form.get('prompt', '')
+        prompt_input = request.form.get('prompt', '')
         # Use the first available model as default if none is selected
         modelo_seleccionado = request.form.get('modelo', available_models[0] if available_models else None)
 
         if modelo_seleccionado:
             # Generar respuesta usando el cliente de Ollama
-            respuesta = ollama_client.generate_response(prompt, modelo_seleccionado)
+            respuesta = ollama_client.generate_response(prompt_input, modelo_seleccionado)
+            # Formatear respuesta en markdown a HTML
+            respuesta = markdown2.markdown(respuesta, extras=['fenced-code-blocks', 'tables', 'task_lists'])
         else:
             respuesta = "Error: No models available from Ollama."
 
-
     return render_template('generate_text.html',
                          modelos=modelos_dict,
-                         respuesta=respuesta)
+                         respuesta=respuesta,
+                         modelo_seleccionado=modelo_seleccionado,
+                         prompt_input=prompt_input)
 
 @app.route('/text-to-audio', methods=['GET', 'POST'])
 def text_to_audio():

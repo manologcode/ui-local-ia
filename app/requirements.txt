@@ -3,3 +3,4 @@ requests
 Werkzeug
 uvicorn
 gunicorn
+markdown2
